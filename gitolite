@@ -6,10 +6,10 @@
 #####################################################
 
 # configure variables, modify them to suit your situation.
-IMAGE_NAME=${IMAGE_NAME:-"betacz/gitolite"}
+IMAGE_NAME=${IMAGE_NAME:-"yhfu/gitolite"}
 CONTAINER_NAME=${CONTAINER_NAME:-gitolite-server}
 PORT=${PORT:-2222}
-GIT_DATA_PATH=${GIT_DATA_PATH:-/opt/git}
+GIT_DATA_PATH=${GIT_DATA_PATH:-/home/data/scm/git/repositories}
 SSH_KEY_FILE=${SSH_KEY_FILE:-"$HOME/.ssh/id_rsa.pub"}
 
 # run command
@@ -30,12 +30,24 @@ if [ $# -ne 1 ]; then
   usage
 fi
 
-if [ $1 != "start" ] && [ -z $container ] && [ -z $container_stopped ]; then
+if [ $1 != "start" ] && [ $1 != "build" ] && [ -z $container ] && [ -z $container_stopped ]; then
   echo "ERROR：Container '${CONTAINER_NAME}' not exists."
   exit 255
 fi
 
 case $1 in
+build)
+  if [ $container ]; then
+    echo "${CONTAINER_NAME} is running, please rm/rmi first !"
+    exit 255
+  fi
+  if [ $container_stopped ]; then
+    echo "${CONTAINER_NAME} is stop, please rm/rmi first !"
+    exit 255
+  fi
+  mkdir -p ${GIT_DATA_PATH}
+  docker build -t ${IMAGE_NAME} .
+  ;;
 start)
   if [ $container ]
   then
